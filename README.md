@@ -44,7 +44,7 @@ Solution design
 * on file system level index is somewhat similar to data stream; it is ordered sequence of files, of which only last one is edited and stores information about storage modifications (new objects stored and some deletions commited); all other files of index remain static; file order is important because different files may contain different deletion mark bit for the same object identifier; to resolve this contradictions library considers information of next files as superseding any information of previous files.
 
 
-Why storage design is overcomplicated? What purpose do you split data stream and index into several files for? Short answer: this is to fulfil special requirements 1 and 2 -- backup and defragmentation support.
+Why storage design is overcomplicated? What purpose do you split data stream and index into several files for? Short answer: this is to fulfil two special requirements -- backup and defragmentation support.
 
 
 Backup procedure
@@ -77,4 +77,36 @@ How to replace fragmented hot storage part with defragmented one in background
 * continue library operation;
 * now old layout index files are unnecessary since they are not included in index sequence; fragmented data stream files are unnecessary since no index file in use point to their content; delete unnecessary files in background while library functions in normal mode.
 
-Note: you can perform defragmentatio on cold backup server in order to save hot producation servers disk usage for request processing.
+Note: you can perform defragmentation on cold backup server in order to save hot producation servers disk usage for request processing.
+
+
+Index file structure
+--------------------
+
+Every index file should store correspondence of unique object identifiers and some fixed size information -- object content location (file + offset), content size (in bytes) and deletion mark bit. There are two possible solutions.
+
+First solution is to store B-tree using object unique identifier as a key. Corresponding information is stored only in tree leaves. Internal tree nodes store only keys.
+
+Second solution is based on two features: 1) key is a number that increments by one; 2) stored information size is fixed. Since information size is fixed we can store it as sequence of fixed-size rows. Since key increments by one, we can navigate to row by calculating its offset, and file space will be used efficiently.
+
+<table>
+  <tr>
+    <th>Solution</th>
+    <th>Object deletion effect</th>
+    <th>Power interruption-safe implementability</th>
+  </tr>
+  <tr>
+    <th>B-tree</th>
+    <th>piece of index file space is freed; space is used efficiently</th>
+    <th>hard to implement since any modification needs several writes to index file</th>
+  </tr>
+  <tr>
+    <th>Fixed-size rows</th>
+    <th>unnecessary row remains in index file; space inefficiency increases in time</th>
+    <th>easy to implement since any modification needs single write to index file</th>
+  </tr>
+</table>
+
+B-tree allows to free index file space if many objects are deleted. That is usable to represent index files after defragmentation that is performed after massive deletions. 
+
+Fixed-size rows structure is simpler, has low space inefficiency if not much objects were deleted. Also its simple implementation allows to fulfill power interruption safety. So fixed-size rows solution is usable in all other cases except for defragmentation of massive deletion effects.
