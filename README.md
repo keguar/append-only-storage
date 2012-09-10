@@ -4,16 +4,16 @@ append-only-storage
 Learning task repository. Task is to create C++ library to deal with append-only storage.
 
 
-Library functions:
-------------------
+Library functions
+-----------------
 
 * store arbitrary large object and associate unique identifier with it;
 * read object associated with unique identifier;
 * delete object associated with unique identifier.
 
 
-Storage usage pattern:
-----------------------
+Storage usage pattern
+---------------------
 
 * approximately 1 write per 10 reads;
 * single deletions are rare;
@@ -22,8 +22,8 @@ Storage usage pattern:
 * total amount of stored data is up to several TB.
 
 
-Special requirements on storage structure:
-------------------------------------------
+Special requirements on storage structure
+-----------------------------------------
 
 * it is possible to easily back up data without function pause;
 * it is possible to defragment storage after massive deletions;
@@ -55,7 +55,7 @@ Backup procedure
 * continue processing writes and deletions, storing new objects content to new data stream file, saving writes and deletions information to new index file;
 * back up all static files of storage (that is all files except two newly created at second step in background while storage is functioning in normal mode.
 
-Note: since files remain static forever backup procedure can be implemented in incremental way.
+<b>Note:</b> since files remain static forever backup procedure can be implemented in incremental way.
 
 
 Background defragmentation procedure
@@ -65,7 +65,7 @@ Background defragmentation procedure
 * iterate through all index files of backup and figure out which objects are deleted and which are not;
 * create new append-only storage; copy all non-deleted objects from backup to new storage; use old unique identifiers; delete backup; now you have new storage that contain the same objects with the same indentifiers; new storage has zero fragmentation.
 
-Note: you may defragment storage parts independently; any sequence of objects that were stored between backups (between synchronous creation of new data stream file and new index file) can be backed up and defragmented independently of other objects.
+<b>Note:</b> you may defragment storage parts independently; any sequence of objects that were stored between backups (between synchronous creation of new data stream file and new index file) can be backed up and defragmented independently of other objects.
 
 
 How to replace fragmented hot storage part with defragmented one in background
@@ -77,7 +77,7 @@ How to replace fragmented hot storage part with defragmented one in background
 * continue library operation;
 * now old layout index files are unnecessary since they are not included in index sequence; fragmented data stream files are unnecessary since no index file in use point to their content; delete unnecessary files in background while library functions in normal mode.
 
-Note: you can perform defragmentation on cold backup server in order to save hot producation servers disk usage for request processing.
+<b>Note:</b> you can perform defragmentation on cold backup server in order to save hot producation servers disk usage for request processing.
 
 
 Index file structure
@@ -102,7 +102,7 @@ Second solution is based on two features: 1) key is a number that increments by 
   </tr>
   <tr>
     <th>Fixed-size rows</th>
-    <th>unnecessary row remains in index file; space inefficiency increases in time</th>
+    <th>unnecessary row remains in index file; space inefficiency increases</th>
     <th>easy to implement since any modification needs single write to index file</th>
   </tr>
 </table>
